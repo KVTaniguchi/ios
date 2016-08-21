@@ -89,39 +89,30 @@ internal class PersistableLabels
     
     private func saveLabels()
     {
-        var dump = String()
-        
-        for (_, label) in self.labels.enumerate()
-        {
-            dump += label + "\n"
+        let newLineString = labels.reduce(String()) { (labels, label) -> String in
+            var mutableLabels = labels
+            mutableLabels += labels + "\n"
+            return mutableLabels
         }
             
         do
         {
-            try dump.writeToFile(pathToServiceTagsFile, atomically: false, encoding: NSUTF8StringEncoding)
+            try newLineString.writeToFile(pathToServiceTagsFile, atomically: false, encoding: NSUTF8StringEncoding)
         }
         catch
         {
+            assertionFailure("Failed to write labels to File.")
         }
     }
 
-    private func loadLabels()
-    {
-        do
-        {
-            self.labels.removeAll()
-            
-            let labels = try String(contentsOfFile: pathToServiceTagsFile, encoding: NSUTF8StringEncoding).characters.split("\n")
-            
-            for (_, label) in labels.enumerate()
-            {
-                self.labels.insert(String(label), atIndex: 0)
-            }
-            
-            self.labels.sortInPlace()
-        }
-        catch
-        {
+    private func loadLabels() {
+        
+        guard let cachedLabels = try? String(contentsOfFile: pathToServiceTagsFile, encoding: NSUTF8StringEncoding).characters.split("\n") else { return }
+        
+        labels.removeAll()
+        
+        for label in cachedLabels {
+            labels.insert(String(label) , atIndex: 0)
         }
     }
 }
